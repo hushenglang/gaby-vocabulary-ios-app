@@ -35,26 +35,53 @@ struct SettingsView: View {
     }
 
     private var remindersSection: some View {
-        Section("Reminders") {
-            Toggle("Study Reminder", isOn: Binding(
-                get: { viewModel.settings.reminderEnabled },
-                set: { viewModel.toggleReminder(enabled: $0) }
-            ))
-            .tint(AppTheme.primary)
-
-            if viewModel.settings.reminderEnabled {
-                DatePicker(
-                    "Reminder Time",
-                    selection: Binding(
-                        get: { viewModel.settings.reminderDate },
-                        set: {
-                            viewModel.settings.reminderDate = $0
-                            viewModel.updateReminderTime()
-                        }
-                    ),
-                    displayedComponents: .hourAndMinute
-                )
+        Section {
+            ForEach(viewModel.settings.reminders) { reminder in
+                reminderRow(reminder)
             }
+            .onDelete { viewModel.removeReminders(at: $0) }
+
+            Button {
+                withAnimation {
+                    viewModel.addReminder()
+                }
+            } label: {
+                HStack {
+                    Image(systemName: "plus.circle.fill")
+                        .foregroundStyle(AppTheme.primary)
+                    Text("Add Reminder")
+                        .foregroundStyle(AppTheme.primary)
+                }
+            }
+        } header: {
+            Text("Reminders")
+        } footer: {
+            if viewModel.settings.reminders.isEmpty {
+                Text("Tap \"Add Reminder\" to set a daily study reminder.")
+            }
+        }
+    }
+
+    private func reminderRow(_ reminder: StudyReminder) -> some View {
+        HStack {
+            DatePicker(
+                "",
+                selection: Binding(
+                    get: { reminder.date },
+                    set: { viewModel.updateReminderTime(reminder, date: $0) }
+                ),
+                displayedComponents: .hourAndMinute
+            )
+            .labelsHidden()
+
+            Spacer()
+
+            Toggle("", isOn: Binding(
+                get: { reminder.isEnabled },
+                set: { viewModel.toggleReminder(reminder, enabled: $0) }
+            ))
+            .labelsHidden()
+            .tint(AppTheme.primary)
         }
     }
 

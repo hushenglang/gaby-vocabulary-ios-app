@@ -8,44 +8,54 @@ final class SettingsService {
 
     private enum Keys {
         static let dailyNewWords = "daily_new_words"
-        static let reminderEnabled = "reminder_enabled"
-        static let reminderHour = "reminder_hour"
-        static let reminderMinute = "reminder_minute"
+        static let reminders = "study_reminders"
+        // Legacy single-reminder keys for migration
+        static let legacyReminderEnabled = "reminder_enabled"
+        static let legacyReminderHour = "reminder_hour"
+        static let legacyReminderMinute = "reminder_minute"
     }
 
     var dailyNewWords: Int {
-        get { defaults.object(forKey: Keys.dailyNewWords) as? Int ?? 10 }
-        set { defaults.set(newValue, forKey: Keys.dailyNewWords) }
+        didSet { defaults.set(dailyNewWords, forKey: Keys.dailyNewWords) }
     }
 
-    var reminderEnabled: Bool {
-        get { defaults.bool(forKey: Keys.reminderEnabled) }
-        set { defaults.set(newValue, forKey: Keys.reminderEnabled) }
+    var reminders: [StudyReminder] {
+        didSet { persistReminders() }
     }
 
-    var reminderHour: Int {
-        get { defaults.object(forKey: Keys.reminderHour) as? Int ?? 9 }
-        set { defaults.set(newValue, forKey: Keys.reminderHour) }
-    }
-
-    var reminderMinute: Int {
-        get { defaults.object(forKey: Keys.reminderMinute) as? Int ?? 0 }
-        set { defaults.set(newValue, forKey: Keys.reminderMinute) }
-    }
-
-    var reminderDate: Date {
-        get {
-            var components = DateComponents()
-            components.hour = reminderHour
-            components.minute = reminderMinute
-            return Calendar.current.date(from: components) ?? .now
-        }
-        set {
-            let components = Calendar.current.dateComponents([.hour, .minute], from: newValue)
-            reminderHour = components.hour ?? 9
-            reminderMinute = components.minute ?? 0
+    private func persistReminders() {
+        if let data = try? JSONEncoder().encode(reminders) {
+            defaults.set(data, forKey: Keys.reminders)
         }
     }
 
-    private init() {}
+    private init() {
+        self.dailyNewWords = defaults.object(forKey: Keys.dailyNewWords) as? Int ?? 10
+        self.reminders = Self.loadReminders(from: UserDefaults.standard)
+    }
+
+    private static func loadReminders(from defaults: UserDefaults) -> [StudyReminder] {
+        if let data = defaults.data(forKey: Keys.reminders),
+           let decoded = try? JSONDecoder().decode([StudyReminder].self, from: data) {
+            return decoded
+        }
+
+        // Migrate from legacy single-reminder format
+        if defaults.object(forKey: Keys.legacyReminderHour) != nil {
+            let reminder = StudyReminder(
+                hour: defaults.object(forKey: Keys.legacyReminderHour) as? Int ?? 9,
+                minute: defaults.object(forKey: Keys.legacyReminderMinute) as? Int ?? 0,
+                isEnabled: defaults.bool(forKey: Keys.legacyReminderEnabled)
+            )
+            defaults.removeObject(forKey: Keys.legacyReminderEnabled)
+            defaults.removeObject(forKey: Keys.legacyReminderHour)
+            defaults.removeObject(forKey: Keys.legacyReminderMinute)
+            if let data = try? JSONEncoder().encode([reminder]) {
+                defaults.set(data, forKey: Keys.reminders)
+            }
+            return [reminder]
+        }
+
+        return []
+    }
 }

@@ -11,7 +11,7 @@ struct ContentView: View {
         TabView(selection: $selectedTab) {
             StudyView(selectedTab: $selectedTab)
                 .tabItem {
-                    Label("Study Gaby", systemImage: "house.fill")
+                    Label("Study", systemImage: "house.fill")
                 }
                 .tag(Tab.study)
 
