@@ -3,6 +3,8 @@ import Foundation
 struct ParsedWord {
     let english: String
     let chinese: String
+    let phoneticNotation: String
+    let exampleSentence: String
 }
 
 enum MarkdownParser {
@@ -21,12 +23,10 @@ enum MarkdownParser {
 
             guard columns.count >= 3 else { continue }
 
-            // Skip separator rows (e.g., |---|---|---|)
             if columns[0].allSatisfy({ $0 == "-" || $0 == ":" }) {
                 continue
             }
 
-            // Skip if first column is not a number (header row) or is "#"
             let firstCol = columns[0]
             if firstCol == "#" || Int(firstCol) == nil {
                 continue
@@ -37,7 +37,19 @@ enum MarkdownParser {
 
             guard !english.isEmpty, !chinese.isEmpty else { continue }
 
-            results.append(ParsedWord(english: english, chinese: chinese))
+            var phonetic = ""
+            if columns.count >= 4 {
+                let raw = columns[3].trimmingCharacters(in: .whitespaces)
+                if raw != "—" && raw != "-" { phonetic = raw }
+            }
+
+            var example = ""
+            if columns.count >= 5 {
+                let raw = columns[4].trimmingCharacters(in: .whitespaces)
+                if raw != "—" && raw != "-" { example = raw }
+            }
+
+            results.append(ParsedWord(english: english, chinese: chinese, phoneticNotation: phonetic, exampleSentence: example))
         }
 
         return results

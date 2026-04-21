@@ -33,13 +33,12 @@ final class WordListViewModel {
         words.count
     }
 
-    func addWord(english: String, chinese: String, context: ModelContext) throws -> Bool {
+    func addWord(english: String, chinese: String, phoneticNotation: String = "", exampleSentence: String = "", context: ModelContext) throws -> Bool {
         let trimmedEnglish = english.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedChinese = chinese.trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard !trimmedEnglish.isEmpty, !trimmedChinese.isEmpty else { return false }
 
-        // Check for duplicate
         let predicate = #Predicate<Word> { $0.english == trimmedEnglish }
         let descriptor = FetchDescriptor<Word>(predicate: predicate)
         let existing = (try? context.fetch(descriptor)) ?? []
@@ -47,7 +46,12 @@ final class WordListViewModel {
             return false
         }
 
-        let word = Word(english: trimmedEnglish, chinese: trimmedChinese)
+        let word = Word(
+            english: trimmedEnglish,
+            chinese: trimmedChinese,
+            phoneticNotation: phoneticNotation.trimmingCharacters(in: .whitespacesAndNewlines),
+            exampleSentence: exampleSentence.trimmingCharacters(in: .whitespacesAndNewlines)
+        )
         context.insert(word)
 
         let card = ReviewCard(word: word)
@@ -75,7 +79,12 @@ final class WordListViewModel {
             let existing = (try? context.fetch(descriptor)) ?? []
 
             if existing.isEmpty {
-                let word = Word(english: entry.english, chinese: entry.chinese)
+                let word = Word(
+                    english: entry.english,
+                    chinese: entry.chinese,
+                    phoneticNotation: entry.phoneticNotation,
+                    exampleSentence: entry.exampleSentence
+                )
                 context.insert(word)
 
                 let card = ReviewCard(word: word)

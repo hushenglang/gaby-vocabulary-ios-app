@@ -3,6 +3,8 @@ import SwiftUI
 struct FlashcardView: View {
     let english: String
     let chinese: String
+    let phoneticNotation: String
+    let exampleSentence: String
     let isRevealed: Bool
     let onTap: () -> Void
 
@@ -10,10 +12,18 @@ struct FlashcardView: View {
         VStack(spacing: AppTheme.spacing24) {
             Spacer()
 
-            Text(english)
-                .font(.system(size: AppTheme.fontTitle2, weight: .bold))
-                .foregroundStyle(AppTheme.textPrimary)
-                .multilineTextAlignment(.center)
+            VStack(spacing: AppTheme.spacing8) {
+                Text(english)
+                    .font(.system(size: AppTheme.fontTitle2, weight: .bold))
+                    .foregroundStyle(AppTheme.textPrimary)
+                    .multilineTextAlignment(.center)
+
+                if !phoneticNotation.isEmpty {
+                    Text("/\(phoneticNotation)/")
+                        .font(.system(size: AppTheme.fontSmall, weight: .regular))
+                        .foregroundStyle(AppTheme.textTertiary)
+                }
+            }
 
             if isRevealed {
                 Rectangle()
@@ -27,6 +37,16 @@ struct FlashcardView: View {
                     .foregroundStyle(AppTheme.textSecondary)
                     .multilineTextAlignment(.center)
                     .transition(.opacity.combined(with: .move(edge: .bottom)))
+
+                if !exampleSentence.isEmpty {
+                    Text(exampleSentence)
+                        .font(.system(size: AppTheme.fontSmall, weight: .regular))
+                        .foregroundStyle(AppTheme.textTertiary)
+                        .multilineTextAlignment(.center)
+                        .italic()
+                        .padding(.horizontal, AppTheme.spacing16)
+                        .transition(.opacity.combined(with: .move(edge: .bottom)))
+                }
             }
 
             Spacer()

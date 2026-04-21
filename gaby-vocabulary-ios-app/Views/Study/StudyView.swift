@@ -47,6 +47,8 @@ struct StudyView: View {
             FlashcardView(
                 english: word.english,
                 chinese: word.chinese,
+                phoneticNotation: word.phoneticNotation,
+                exampleSentence: word.exampleSentence,
                 isRevealed: viewModel.isRevealed,
                 onTap: { viewModel.revealCard() }
             )

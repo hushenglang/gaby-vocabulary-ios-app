@@ -7,6 +7,8 @@ struct AddWordView: View {
 
     @State private var english: String = ""
     @State private var chinese: String = ""
+    @State private var phoneticNotation: String = ""
+    @State private var exampleSentence: String = ""
     @State private var showDuplicateAlert = false
 
     var onSaved: () -> Void
@@ -31,6 +33,24 @@ struct AddWordView: View {
                 } header: {
                     Text("Chinese")
                 }
+
+                Section {
+                    TextField("e.g. ˌɪnˌfæʧuˈeɪʃən", text: $phoneticNotation)
+                        .autocorrectionDisabled()
+                } header: {
+                    Text("Phonetic Notation")
+                } footer: {
+                    Text("Optional")
+                }
+
+                Section {
+                    TextField("Example sentence using the word", text: $exampleSentence, axis: .vertical)
+                        .lineLimit(3...6)
+                } header: {
+                    Text("Example Sentence")
+                } footer: {
+                    Text("Optional")
+                }
             }
             .navigationTitle("Add Word")
             .navigationBarTitleDisplayMode(.inline)
@@ -54,7 +74,7 @@ struct AddWordView: View {
     private func saveWord() {
         let vm = WordListViewModel()
         do {
-            let success = try vm.addWord(english: english, chinese: chinese, context: modelContext)
+            let success = try vm.addWord(english: english, chinese: chinese, phoneticNotation: phoneticNotation, exampleSentence: exampleSentence, context: modelContext)
             if success {
                 onSaved()
                 dismiss()
